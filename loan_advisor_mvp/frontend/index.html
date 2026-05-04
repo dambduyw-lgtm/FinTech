@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DebtClear — Loan Advisor</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #0c0e10;
+    --surface: #131619;
+    --border:  #1f2428;
+    --border2: #2a3038;
+    --text:    #e2e6ea;
+    --muted:   #5a6470;
+    --accent:  #00d4aa;
+    --accent2: #ff6b6b;
+    --accent3: #ffd166;
+    --blue:    #4da3ff;
+    --serif:   'DM Serif Display', Georgia, serif;
+    --mono:    'DM Mono', monospace;
+    --sans:    'DM Sans', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 18px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: rgba(12,14,16,0.96);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+  }
+
+  .logo { font-family: var(--serif); font-size: 22px; letter-spacing: -0.02em; }
+  .logo span { color: var(--accent); }
+
+  .header-right { display: flex; align-items: center; gap: 16px; }
+
+  .standalone-badge {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: rgba(0,212,170,0.08);
+    border: 1px solid rgba(0,212,170,0.2);
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+
+  .header-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .app {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    min-height: calc(100vh - 61px);
+  }
+
+  .sidebar {
+    border-right: 1px solid var(--border);
+    padding: 28px 24px;
+    overflow-y: auto;
+    max-height: calc(100vh - 61px);
+    position: sticky;
+    top: 61px;
+  }
+
+  .sidebar-title { font-family: var(--serif); font-size: 18px; margin-bottom: 3px; }
+  .sidebar-sub   { font-size: 12px; color: var(--muted); margin-bottom: 24px; }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 24px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-label:first-of-type { margin-top: 0; }
+
+  label {
+    display: block;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 4px;
+    font-family: var(--mono);
+  }
+
+  input, select {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 8px 11px;
+    margin-bottom: 11px;
+    outline: none;
+    transition: border-color 0.2s;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  input:focus, select:focus { border-color: var(--accent); }
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%235a6470'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 28px;
+  }
+  select option { background: #131619; }
+
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .loan-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 10px;
+    animation: fadeUp 0.25s ease;
+  }
+
+  @keyframes fadeUp { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+
+  .loan-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .loan-num {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    background: rgba(0,212,170,0.08);
+    padding: 2px 8px;
+    border-radius: 20px;
+    border: 1px solid rgba(0,212,170,0.2);
+  }
+
+  .remove-btn {
+    background: none; border: none;
+    color: var(--muted); cursor: pointer;
+    font-size: 18px; padding: 0 4px;
+    border-radius: 4px;
+    transition: color 0.15s;
+  }
+  .remove-btn:hover { color: var(--accent2); }
+
+  .add-loan-btn {
+    width: 100%; padding: 9px;
+    background: transparent;
+    border: 1px dashed var(--border2);
+    border-radius: 6px;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .add-loan-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(0,212,170,0.04); }
+
+  .analyze-btn {
+    width: 100%; padding: 13px;
+    background: var(--accent);
+    border: none; border-radius: 8px;
+    color: #0c0e10;
+    font-family: var(--mono);
+    font-size: 13px; font-weight: 500;
+    cursor: pointer; margin-top: 20px;
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .analyze-btn:hover  { background: #00f0c0; transform: translateY(-1px); }
+  .analyze-btn:active { transform: translateY(0); }
+  .analyze-btn:disabled { background: var(--border2); color: var(--muted); cursor: not-allowed; transform: none; }
+
+  .dashboard { padding: 28px 32px; overflow-y: auto; }
+
+  .empty-state {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    height: 100%; gap: 10px;
+    color: var(--muted); text-align: center;
+  }
+  .empty-icon { font-size: 52px; opacity: 0.2; }
+  .empty-state h2 { font-family: var(--serif); font-size: 26px; color: var(--text); opacity: 0.35; }
+  .empty-state p  { font-size: 13px; max-width: 280px; line-height: 1.6; }
+
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px; margin-bottom: 20px;
+  }
+
+  .kpi {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    animation: fadeUp 0.35s ease both;
+  }
+  .kpi:nth-child(1) { animation-delay: 0.04s; }
+  .kpi:nth-child(2) { animation-delay: 0.08s; }
+  .kpi:nth-child(3) { animation-delay: 0.12s; }
+  .kpi:nth-child(4) { animation-delay: 0.16s; }
+
+  .kpi-label { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 7px; }
+  .kpi-value { font-family: var(--serif); font-size: 28px; letter-spacing: -0.02em; }
+  .kpi-value.accent { color: var(--accent); }
+  .kpi-value.danger { color: var(--accent2); }
+  .kpi-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+  .dti-bar-wrap { background: var(--border); border-radius: 4px; height: 6px; overflow: hidden; margin-top: 7px; }
+  .dti-bar { height: 100%; border-radius: 4px; transition: width 0.9s cubic-bezier(0.4,0,0.2,1); }
+
+  .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px; padding: 20px;
+    animation: fadeUp 0.4s ease both;
+  }
+
+  .card-title {
+    font-family: var(--mono);
+    font-size: 10px; color: var(--muted);
+    letter-spacing: 0.15em; text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-title::before { content:''; display:block; width:3px; height:13px; border-radius:2px; background:var(--accent); }
+
+  .strategy-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .strategy-row:last-child { border-bottom: none; }
+  .strat-name { font-family: var(--mono); font-size: 11px; min-width: 85px; text-transform: uppercase; letter-spacing: 0.07em; }
+  .strat-badge { font-size: 9px; padding: 2px 7px; border-radius: 20px; font-family: var(--mono); background: rgba(0,212,170,0.1); color: var(--accent); border: 1px solid rgba(0,212,170,0.25); }
+  .strat-bar-wrap { flex: 1; background: var(--border); border-radius: 3px; height: 5px; overflow: hidden; }
+  .strat-bar { height: 100%; border-radius: 3px; transition: width 0.8s cubic-bezier(0.4,0,0.2,1); }
+  .strat-val   { font-family: var(--mono); font-size: 11px; min-width: 70px; text-align: right; }
+  .strat-saved { font-family: var(--mono); font-size: 11px; color: var(--accent); min-width: 75px; text-align: right; }
+
+  .mc-score-wrap { display: flex; align-items: center; gap: 24px; margin-bottom: 16px; }
+  .mc-score-circle {
+    width: 76px; height: 76px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; flex-direction: column;
+    border: 2px solid var(--accent);
+    background: rgba(0,212,170,0.05); flex-shrink: 0;
+  }
+  .mc-score-num { font-family: var(--serif); font-size: 26px; color: var(--accent); line-height: 1; }
+  .mc-score-lbl { font-family: var(--mono); font-size: 9px; color: var(--muted); }
+  .mc-bands { flex: 1; }
+  .mc-band { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+  .mc-band-label { font-family: var(--mono); font-size: 10px; color: var(--muted); min-width: 100px; }
+  .mc-band-bar-wrap { flex: 1; background: var(--border); border-radius: 3px; height: 4px; }
+  .mc-band-bar { height: 100%; border-radius: 3px; transition: width 0.9s; }
+  .mc-band-val { font-family: var(--mono); font-size: 10px; min-width: 50px; text-align: right; }
+  .mc-target-prob { margin-top: 10px; font-family: var(--mono); font-size: 11px; color: var(--accent); }
+  .mc-interp { font-size: 12px; color: var(--muted); line-height: 1.6; background: var(--bg); border-radius: 6px; padding: 11px 13px; font-family: var(--mono); border: 1px solid var(--border); }
+
+  .nudge { border-radius: 7px; padding: 12px 14px; margin-bottom: 9px; border-left: 3px solid; animation: fadeUp 0.3s ease both; }
+  .nudge-critical { background: rgba(255,107,107,0.06); border-color: var(--accent2); }
+  .nudge-warning  { background: rgba(255,209,102,0.06); border-color: var(--accent3); }
+  .nudge-info     { background: rgba(0,212,170,0.05);  border-color: var(--accent); }
+  .nudge-type { font-family: var(--mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--muted); margin-bottom: 4px; }
+  .nudge-msg  { font-size: 12px; line-height: 1.55; margin-bottom: 4px; }
+  .nudge-rw   { font-size: 11px; color: var(--accent); font-family: var(--mono); margin-bottom: 4px; }
+  .nudge-cta  { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+
+  .chart-wrap { position: relative; height: 210px; }
+
+  .loading { display: flex; align-items: center; justify-content: center; height: 200px; gap: 12px; color: var(--muted); font-family: var(--mono); font-size: 13px; }
+  .spinner { width: 18px; height: 18px; border: 2px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 900px) {
+    .app { grid-template-columns: 1fr; }
+    .sidebar { position: static; max-height: none; }
+    .kpi-grid { grid-template-columns: 1fr 1fr; }
+    .main-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Debt<span>Clear</span></div>
+  <div class="header-right">
+    <span class="standalone-badge">✦ no install needed</span>
+    <span class="header-tag">Loan Advisor · FinTech MVP</span>
+  </div>
+</header>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-title">Your Loans</div>
+    <div class="sidebar-sub">Enter each loan or lease. All calculations run locally in your browser — no server required.</div>
+
+    <div class="section-label">Your Profile</div>
+    <label>Monthly net income (€)</label>
+    <input type="number" id="income" value="1800" min="0">
+    <label>Extra you can pay / month (€)</label>
+    <input type="number" id="extra" value="75" min="0">
+    <label>Payoff motivation</label>
+    <select id="motivation">
+      <option value="hybrid">Balanced (hybrid)</option>
+      <option value="minimize_cost">Minimize total interest</option>
+      <option value="quick_wins">Quick wins first</option>
+    </select>
+    <label>Goal debt-free date (optional)</label>
+    <input type="date" id="target_date">
+    <label>Life event tied to this goal (optional)</label>
+    <input type="text" id="life_event" placeholder="e.g. Move out, Graduate…">
+
+    <div class="section-label">Loans</div>
+    <div id="loans-container"></div>
+    <button class="add-loan-btn" onclick="addLoan()">+ Add another loan</button>
+    <button class="analyze-btn" id="analyze-btn" onclick="analyze()">Analyze my debt →</button>
+  </aside>
+
+  <main class="dashboard" id="dashboard">
+    <div class="empty-state">
+      <div class="empty-icon">◎</div>
+      <h2>Ready when you are</h2>
+      <p>Add your loans on the left and hit Analyze. Everything runs in your browser — no install, no server, just open the file.</p>
+    </div>
+  </main>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+//  CORE ENGINES  (ported from backend/core.py)
+// ═══════════════════════════════════════════════════════════════════
+
+const MARKET_RATES = { student: 0.025, personal: 0.055, car: 0.048, bnpl: 0.0 };
+
+const EQUIVALENTS = [
+  [3500, 'a two-week trip to Japan'],
+  [1500, 'a weekend trip to Barcelona'],
+  [800,  'a brand new iPhone'],
+  [300,  'a month of groceries'],
+  [80,   'a nice dinner out'],
+  [15,   'a Spotify subscription'],
+];
+
+// ── Helpers ──────────────────────────────────────────────────────
+function monthlyRate(loan)  { return loan.annual_rate / 12; }
+
+function totalInterestRemaining(loan) {
+  const r = monthlyRate(loan), n = loan.months_remaining;
+  if (r === 0 || n === 0) return 0;
+  const pmt = loan.balance * r / (1 - Math.pow(1 + r, -n));
+  return Math.max((pmt * n) - loan.balance, 0);
+}
+
+function deepClone(loans) { return loans.map(l => ({ ...l })); }
+
+function realWorldEquiv(amount) {
+  for (const [threshold, label] of EQUIVALENTS) {
+    if (amount >= threshold) return `That's ${(amount / threshold).toFixed(1)}× ${label}`;
+  }
+  return `That's €${amount.toFixed(0)} you could redirect toward savings`;
+}
+
+// Box-Muller normal random
+function randn() {
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+
+// ── Payoff engine ─────────────────────────────────────────────────
+function sortByStrategy(loans, strategy) {
+  if (strategy === 'avalanche') return [...loans].sort((a, b) => b.annual_rate - a.annual_rate);
+  if (strategy === 'snowball')  return [...loans].sort((a, b) => a.balance - b.balance);
+  // Hybrid: weighted rank (60% rate, 40% balance)
+  const byRate = [...loans].sort((a,b) => b.annual_rate - a.annual_rate);
+  const byBal  = [...loans].sort((a,b) => a.balance - b.balance);
+  const rR = {}, bR = {};
+  byRate.forEach((l,i) => rR[l.id] = i);
+  byBal.forEach((l,i)  => bR[l.id] = i);
+  return [...loans].sort((a,b) => (0.6*rR[a.id]+0.4*bR[a.id]) - (0.6*rR[b.id]+0.4*bR[b.id]));
+}
+
+function calculatePayoff(loansIn, extra, strategy) {
+  const loans    = deepClone(loansIn);
+  let priority   = sortByStrategy(loans, strategy);
+  const schedule = [];
+  let totalInterest = 0, month = 0;
+
+  while (loans.some(l => l.balance > 0) && month < 600) {
+    const snap = { month, loans: {} };
+    let availExtra = extra;
+
+    for (const loan of loans) {
+      if (loan.balance <= 0) continue;
+      const interest = loan.balance * monthlyRate(loan);
+      totalInterest += interest;
+      const payment  = Math.min(loan.monthly_payment, loan.balance + interest);
+      loan.balance   = loan.balance + interest - payment;
+
+      if (priority.length && loan.id === priority[0].id && availExtra > 0) {
+        const applied = Math.min(availExtra, loan.balance);
+        loan.balance -= applied;
+        availExtra   -= applied;
+      }
+      snap.loans[loan.id] = Math.max(parseFloat(loan.balance.toFixed(2)), 0);
+    }
+
+    priority = priority.filter(l => l.balance > 0);
+    schedule.push(snap);
+    month++;
+  }
+
+  const dfDate = new Date();
+  dfDate.setMonth(dfDate.getMonth() + month);
+
+  return {
+    strategy,
+    months_to_free: month,
+    debt_free_date: dfDate.toISOString().slice(0, 10),
+    total_interest: parseFloat(totalInterest.toFixed(2)),
+    schedule,
+    interest_saved: 0,
+  };
+}
+
+function compareStrategies(loans, profile) {
+  const baseline = calculatePayoff(loans, 0, 'avalanche');
+  const results  = {};
+  for (const strat of ['avalanche', 'snowball', 'hybrid']) {
+    const r = calculatePayoff(loans, profile.extra_monthly, strat);
+    r.interest_saved = parseFloat((baseline.total_interest - r.total_interest).toFixed(2));
+    results[strat] = r;
+  }
+  return results;
+}
+
+// ── Nudge engine ──────────────────────────────────────────────────
+function monthlyNeeded(loans, targetMonths) {
+  const totalBal = loans.reduce((s, l) => s + l.balance, 0);
+  const avgRate  = loans.reduce((s, l) => s + l.annual_rate * l.balance, 0) / Math.max(totalBal, 1) / 12;
+  if (avgRate === 0) return totalBal / Math.max(targetMonths, 1);
+  const pmt     = totalBal * avgRate / (1 - Math.pow(1 + avgRate, -targetMonths));
+  const current = loans.reduce((s, l) => s + l.monthly_payment, 0);
+  return Math.max(Math.round(pmt - current), 0);
+}
+
+function generateNudges(loans, payoffResult, profile) {
+  const nudges = [];
+  const ti = payoffResult.total_interest;
+
+  // 1. Total interest framing
+  nudges.push({
+    type: 'behavioral', severity: ti > 1000 ? 'warning' : 'info',
+    message:    `You'll pay €${ti.toLocaleString()} in total interest at your current pace.`,
+    real_world: realWorldEquiv(ti),
+    cta: 'See how €50/month extra changes this',
+  });
+
+  // 2. Refinancing signals per loan
+  for (const loan of loans) {
+    const mkt = MARKET_RATES[loan.loan_type] ?? 0.06;
+    if (loan.annual_rate > mkt + 0.015) {
+      const savings = loan.annual_rate > 0
+        ? totalInterestRemaining(loan) * (1 - mkt / loan.annual_rate)
+        : 0;
+      nudges.push({
+        type: 'refi', severity: 'critical',
+        message: `'${loan.name}' is at ${(loan.annual_rate*100).toFixed(1)}% APR. Market avg is ~${(mkt*100).toFixed(1)}%. Refinancing could save ~€${savings.toFixed(0)}.`,
+        real_world: realWorldEquiv(savings),
+        cta: 'Compare refinancing options',
+      });
+    }
+  }
+
+  // 3. Life event milestone
+  if (profile.target_debt_free) {
+    const today  = new Date();
+    const target = new Date(profile.target_debt_free);
+    const monthsToGoal = Math.round((target - today) / (1000*60*60*24*30));
+    const gap = payoffResult.months_to_free - monthsToGoal;
+    if (gap > 0) {
+      const needed = monthlyNeeded(loans, monthsToGoal);
+      nudges.push({
+        type: 'milestone', severity: 'warning',
+        message: `You want to be debt-free for '${profile.life_event || 'your goal'}' in ${monthsToGoal} months, but you're on track for ${payoffResult.months_to_free} months.`,
+        real_world: `Add ~€${needed.toLocaleString()}/month to hit your target.`,
+        cta: 'Recalculate with higher payment',
+      });
+    }
+  }
+  return nudges;
+}
+
+// ── Monte Carlo ───────────────────────────────────────────────────
+function simulateOneMonth(loans, extraBudget) {
+  const active = loans.filter(l => l.balance > 0).sort((a,b) => b.annual_rate - a.annual_rate);
+  let avail = extraBudget;
+  for (const loan of loans) {
+    if (loan.balance <= 0) continue;
+    const interest = loan.balance * monthlyRate(loan);
+    const payment  = Math.min(loan.monthly_payment, loan.balance + interest);
+    loan.balance   = Math.max(loan.balance + interest - payment, 0);
+    if (active.length && loan.id === active[0].id && avail > 0) {
+      const applied = Math.min(avail, loan.balance);
+      loan.balance -= applied;
+      avail        -= applied;
+    }
+  }
+  return loans.every(l => l.balance <= 0);
+}
+
+function runMonteCarlo(loansIn, profile, nSims = 500) {
+  const results    = [];
+  const baseIncome = profile.monthly_income;
+  const baseExtra  = profile.extra_monthly;
+
+  for (let s = 0; s < nSims; s++) {
+    const sim = deepClone(loansIn);
+    let free  = null;
+    for (let m = 0; m < 360; m++) {
+      const income = baseIncome + randn() * baseIncome * 0.05;
+      const extra  = Math.max(income - (baseIncome - baseExtra), 0);
+      if (simulateOneMonth(sim, extra)) { free = m + 1; break; }
+    }
+    results.push(free ?? 360);
+  }
+
+  results.sort((a,b) => a - b);
+  const p25 = results[Math.floor(nSims * 0.25)];
+  const p50 = results[Math.floor(nSims * 0.50)];
+  const p75 = results[Math.floor(nSims * 0.75)];
+
+  let probOnTarget = null;
+  if (profile.target_debt_free) {
+    const today   = new Date();
+    const target  = new Date(profile.target_debt_free);
+    const mToTgt  = Math.round((target - today) / (1000*60*60*24*30));
+    probOnTarget  = parseFloat((results.filter(r => r <= mToTgt).length / nSims * 100).toFixed(1));
+  }
+
+  const mean  = results.reduce((a,b) => a+b, 0) / nSims;
+  const std   = Math.sqrt(results.reduce((a,b) => a + Math.pow(b-mean,2), 0) / nSims);
+  const score = Math.max(0, Math.round((1 - std/mean) * 100));
+
+  return {
+    p25_months: p25, p50_months: p50, p75_months: p75,
+    prob_on_target: probOnTarget,
+    debt_free_score: score,
+    interpretation: `In 50% of simulations you're debt-free within ${p50} months. Best case: ${p25} months. Worst case: ${p75} months.`,
+  };
+}
+
+// ── Full analysis ─────────────────────────────────────────────────
+function runAnalysis(loans, profile) {
+  const strategies  = compareStrategies(loans, profile);
+  const stratMap    = { quick_wins: 'snowball', minimize_cost: 'avalanche', hybrid: 'hybrid' };
+  const recommended = stratMap[profile.motivation_type] ?? 'hybrid';
+  const bestPlan    = strategies[recommended];
+  const nudges      = generateNudges(loans, bestPlan, profile);
+  const mc          = runMonteCarlo(loans, profile, 500);
+
+  const totalBalance = parseFloat(loans.reduce((s,l) => s+l.balance, 0).toFixed(2));
+  const totalMonthly = parseFloat(loans.reduce((s,l) => s+l.monthly_payment, 0).toFixed(2));
+  const dti          = parseFloat((totalMonthly / profile.monthly_income * 100).toFixed(1));
+  const highestRate  = loans.reduce((a,b) => a.annual_rate > b.annual_rate ? a : b);
+
+  return {
+    summary: {
+      total_balance:      totalBalance,
+      total_monthly_min:  totalMonthly,
+      debt_to_income_pct: dti,
+      loan_count:         loans.length,
+      highest_rate_loan:  highestRate.name,
+      highest_rate_pct:   parseFloat((highestRate.annual_rate*100).toFixed(2)),
+    },
+    strategies, recommended, nudges, monte_carlo: mc,
+  };
+}
+
+
+// ═══════════════════════════════════════════════════════════════════
+//  UI LAYER
+// ═══════════════════════════════════════════════════════════════════
+
+let loanCount  = 0;
+let activeChart = null;
+
+function addLoan(defaults = {}) {
+  loanCount++;
+  const id  = `loan_${loanCount}`;
+  const div = document.createElement('div');
+  div.className = 'loan-card';
+  div.id        = `card_${id}`;
+  div.innerHTML = `
+    <div class="loan-card-header">
+      <span class="loan-num">Loan #${loanCount}</span>
+      <button class="remove-btn" onclick="removeLoan('card_${id}')">×</button>
+    </div>
+    <label>Loan name</label>
+    <input type="text" id="${id}_name" value="${defaults.name||''}" placeholder="e.g. Student Loan DUO">
+    <label>Type</label>
+    <select id="${id}_type">
+      <option value="student"  ${defaults.loan_type==='student'  ?'selected':''}>Student</option>
+      <option value="personal" ${defaults.loan_type==='personal' ?'selected':''}>Personal loan</option>
+      <option value="car"      ${defaults.loan_type==='car'      ?'selected':''}>Car / lease</option>
+      <option value="bnpl"     ${defaults.loan_type==='bnpl'     ?'selected':''}>BNPL / credit</option>
+    </select>
+    <div class="row-2">
+      <div>
+        <label>Balance (€)</label>
+        <input type="number" id="${id}_balance" value="${defaults.balance||''}" placeholder="9500" min="0">
+      </div>
+      <div>
+        <label>APR (%)</label>
+        <input type="number" id="${id}_rate" value="${defaults.rate||''}" placeholder="7.5" step="0.1" min="0">
+      </div>
+    </div>
+    <div class="row-2">
+      <div>
+        <label>Monthly payment (€)</label>
+        <input type="number" id="${id}_payment" value="${defaults.payment||''}" placeholder="150" min="0">
+      </div>
+      <div>
+        <label>Months remaining</label>
+        <input type="number" id="${id}_months" value="${defaults.months||''}" placeholder="48" min="1">
+      </div>
+    </div>
+  `;
+  document.getElementById('loans-container').appendChild(div);
+}
+
+function removeLoan(id) { document.getElementById(id)?.remove(); }
+
+function collectLoans() {
+  const loans = [];
+  for (const card of document.querySelectorAll('.loan-card')) {
+    const id      = card.id.replace('card_', '');
+    const name    = document.getElementById(`${id}_name`)?.value.trim();
+    const type    = document.getElementById(`${id}_type`)?.value;
+    const balance = parseFloat(document.getElementById(`${id}_balance`)?.value);
+    const rate    = parseFloat(document.getElementById(`${id}_rate`)?.value) / 100;
+    const payment = parseFloat(document.getElementById(`${id}_payment`)?.value);
+    const months  = parseInt(document.getElementById(`${id}_months`)?.value);
+    if (!name || isNaN(balance) || isNaN(rate) || isNaN(payment) || isNaN(months)) continue;
+    loans.push({ id, name, loan_type: type, principal: balance, balance, annual_rate: rate, monthly_payment: payment, months_remaining: months });
+  }
+  return loans;
+}
+
+function analyze() {
+  const loans = collectLoans();
+  if (!loans.length) { alert('Please add at least one loan.'); return; }
+
+  const btn = document.getElementById('analyze-btn');
+  btn.disabled = true; btn.textContent = 'Analyzing…';
+
+  document.getElementById('dashboard').innerHTML =
+    `<div class="loading"><div class="spinner"></div> Running simulations…</div>`;
+
+  // Yield to browser to paint spinner, then compute
+  setTimeout(() => {
+    const profile = {
+      monthly_income:   parseFloat(document.getElementById('income').value)  || 0,
+      extra_monthly:    parseFloat(document.getElementById('extra').value)   || 0,
+      motivation_type:  document.getElementById('motivation').value,
+      target_debt_free: document.getElementById('target_date').value  || null,
+      life_event:       document.getElementById('life_event').value.trim() || null,
+    };
+
+    try {
+      renderDashboard(runAnalysis(loans, profile), loans);
+    } catch (e) {
+      document.getElementById('dashboard').innerHTML =
+        `<div style="color:var(--accent2);font-family:var(--mono);padding:40px;font-size:13px;">⚠ Error: ${e.message}<br><br>Check all loan fields are filled correctly.</div>`;
+    }
+
+    btn.disabled = false; btn.textContent = 'Analyze my debt →';
+  }, 30);
+}
+
+function renderDashboard(data, loans) {
+  const { summary, strategies, recommended, nudges, monte_carlo: mc } = data;
+  const rec  = strategies[recommended];
+  const maxI = Math.max(...Object.values(strategies).map(s => s.total_interest));
+  const dtiColor = summary.debt_to_income_pct > 40 ? 'var(--accent2)'
+                 : summary.debt_to_income_pct > 25 ? 'var(--accent3)' : 'var(--accent)';
+  const sColors  = { avalanche: 'var(--blue)', snowball: 'var(--accent3)', hybrid: 'var(--accent)' };
+
+  document.getElementById('dashboard').innerHTML = `
+
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-label">Total Debt</div>
+        <div class="kpi-value danger">€${summary.total_balance.toLocaleString()}</div>
+        <div class="kpi-sub">${summary.loan_count} loan${summary.loan_count!==1?'s':''}</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Debt-Free In</div>
+        <div class="kpi-value accent">${rec.months_to_free} mo</div>
+        <div class="kpi-sub">${rec.debt_free_date}</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Interest Saved</div>
+        <div class="kpi-value accent">€${rec.interest_saved.toLocaleString()}</div>
+        <div class="kpi-sub">vs. minimum payments</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Debt-to-Income</div>
+        <div class="kpi-value" style="color:${dtiColor}">${summary.debt_to_income_pct}%</div>
+        <div class="dti-bar-wrap">
+          <div class="dti-bar" style="width:${Math.min(summary.debt_to_income_pct,100)}%;background:${dtiColor}"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="main-grid">
+
+      <div class="card">
+        <div class="card-title">Strategy Comparison</div>
+        ${Object.entries(strategies).map(([name, s]) => `
+          <div class="strategy-row">
+            <span class="strat-name">${name}</span>
+            ${name===recommended ? '<span class="strat-badge">recommended</span>' : '<span></span>'}
+            <div class="strat-bar-wrap">
+              <div class="strat-bar" style="width:${maxI>0?(s.total_interest/maxI*100).toFixed(1):0}%;background:${sColors[name]}"></div>
+            </div>
+            <span class="strat-val">€${s.total_interest.toLocaleString()}</span>
+            <span class="strat-saved">−€${s.interest_saved.toLocaleString()}</span>
+          </div>
+        `).join('')}
+      </div>
+
+      <div class="card">
+        <div class="card-title">Debt-Free Probability Score</div>
+        <div class="mc-score-wrap">
+          <div class="mc-score-circle">
+            <div class="mc-score-num">${mc.debt_free_score}</div>
+            <div class="mc-score-lbl">/ 100</div>
+          </div>
+          <div class="mc-bands">
+            ${[
+              { label:'Best case (25%)',  val:mc.p25_months, pct:mc.p75_months?(mc.p25_months/mc.p75_months*100):100, color:'var(--accent)' },
+              { label:'Median (50%)',     val:mc.p50_months, pct:mc.p75_months?(mc.p50_months/mc.p75_months*100):100, color:'var(--blue)' },
+              { label:'Worst case (75%)', val:mc.p75_months, pct:100, color:'var(--accent2)' },
+            ].map(b => `
+              <div class="mc-band">
+                <span class="mc-band-label">${b.label}</span>
+                <div class="mc-band-bar-wrap"><div class="mc-band-bar" style="width:${b.pct.toFixed(0)}%;background:${b.color}"></div></div>
+                <span class="mc-band-val">${b.val} mo</span>
+              </div>
+            `).join('')}
+            ${mc.prob_on_target!==null?`<div class="mc-target-prob">↑ ${mc.prob_on_target}% chance of hitting your target date</div>`:''}
+          </div>
+        </div>
+        <div class="mc-interp">${mc.interpretation}</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Insights &amp; Nudges</div>
+        ${nudges.map((n,i) => `
+          <div class="nudge nudge-${n.severity}" style="animation-delay:${i*0.07}s">
+            <div class="nudge-type">${n.type} · ${n.severity}</div>
+            <div class="nudge-msg">${n.message}</div>
+            <div class="nudge-rw">💡 ${n.real_world}</div>
+            <div class="nudge-cta">→ ${n.cta}</div>
+          </div>
+        `).join('')}
+      </div>
+
+      <div class="card">
+        <div class="card-title">Balance Over Time</div>
+        <div class="chart-wrap"><canvas id="balanceChart"></canvas></div>
+      </div>
+
+    </div>
+  `;
+
+  renderChart(strategies);
+}
+
+function renderChart(strategies) {
+  if (activeChart) { activeChart.destroy(); activeChart = null; }
+  const ctx = document.getElementById('balanceChart');
+  if (!ctx) return;
+
+  const colors   = { avalanche:'#4da3ff', snowball:'#ffd166', hybrid:'#00d4aa' };
+  const datasets = Object.entries(strategies).map(([name, strat]) => ({
+    label: name.charAt(0).toUpperCase() + name.slice(1),
+    data: strat.schedule
+      .filter((_,i) => i % 3 === 0)
+      .map(m => ({ x: m.month, y: parseFloat(Object.values(m.loans).reduce((a,b)=>a+b,0).toFixed(0)) })),
+    borderColor:     colors[name],
+    backgroundColor: colors[name] + '12',
+    borderWidth: 2, pointRadius: 0,
+    fill: name === 'hybrid', tension: 0.4,
+  }));
+
+  activeChart = new Chart(ctx, {
+    type: 'line',
+    data: { datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      parsing: { xAxisKey: 'x', yAxisKey: 'y' },
+      plugins: {
+        legend: { labels: { color:'#5a6470', font:{family:'DM Mono',size:10}, boxWidth:10 } },
+        tooltip: {
+          backgroundColor:'#131619', borderColor:'#1f2428', borderWidth:1,
+          titleColor:'#e2e6ea', bodyColor:'#5a6470',
+          callbacks: { label: c => ` ${c.dataset.label}: €${c.parsed.y.toLocaleString()}` }
+        }
+      },
+      scales: {
+        x: { type:'linear', grid:{color:'#1f2428'}, ticks:{color:'#5a6470',font:{family:'DM Mono',size:10}}, title:{display:true,text:'Month',color:'#5a6470',font:{family:'DM Mono',size:10}} },
+        y: { grid:{color:'#1f2428'}, ticks:{color:'#5a6470',font:{family:'DM Mono',size:10},callback:v=>`€${v.toLocaleString()}`}, title:{display:true,text:'Balance (€)',color:'#5a6470',font:{family:'DM Mono',size:10}} }
+      }
+    }
+  });
+}
+
+// Preload sample Dutch student portfolio
+addLoan({ name:'DUO Student Loan',  loan_type:'student',  balance:9500, rate:0,    payment:150, months:72 });
+addLoan({ name:'Personal Loan ING', loan_type:'personal', balance:3800, rate:8.2,  payment:120, months:36 });
+addLoan({ name:'Phone Lease',       loan_type:'bnpl',     balance:420,  rate:19.9, payment:60,  months:8  });
+</script>
+</body>
+</html>
