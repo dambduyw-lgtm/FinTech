@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "BNPL Safeguard",
+  "version": "1.0.0",
+  "description": "See your real BNPL burden before you buy.",
+  "permissions": ["storage", "activeTab"],
+  "host_permissions": ["http://localhost:3001/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "BNPL Safeguard"
+  }
+}
