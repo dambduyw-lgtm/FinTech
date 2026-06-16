@@ -4,44 +4,80 @@
   --green:  #22c55e;
   --amber:  #f59e0b;
   --red:    #ef4444;
-  --bg:     #f8fafc;
+  --bg:     #f6f7fb;
   --card:   #ffffff;
-  --border: #e2e8f0;
-  --text:   #1e293b;
+  --border: #e7eaf1;
+  --text:   #0f172a;
   --muted:  #64748b;
-  --accent: #6366f1;
+  --accent: #2563eb;
+  --grad:   linear-gradient(150deg, #0b1324 0%, #15233b 50%, #1e3a5f 100%);
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: var(--bg);
   color: var(--text);
   line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-.container { max-width: 860px; margin: 0 auto; padding: 2rem 1.5rem; }
+h1, h2, h3 { font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif; letter-spacing: -0.01em; }
+
+.container { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+
+/* Full-bleed gradient backdrop for entry pages (landing + persona selection) */
+.hero-bg {
+  position: fixed; inset: 0; z-index: 0;
+  background:
+    radial-gradient(900px 380px at 15% -10%, rgba(56, 116, 203, 0.28), transparent 60%),
+    radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px) 0 0 / 26px 26px,
+    linear-gradient(150deg, #0b1324 0%, #15233b 50%, #1e3a5f 100%);
+}
+
+/* Thin gradient brand accent for the calm (data) pages */
+.accent-bar {
+  position: fixed; top: 0; left: 0; right: 0; height: 5px; z-index: 5;
+  background: var(--grad);
+}
 
 .card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 1.5rem;
   margin-bottom: 1.25rem;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
 }
 
 .btn {
   display: inline-block;
-  padding: 0.65rem 1.4rem;
-  border-radius: 8px;
+  padding: 0.7rem 1.5rem;
+  border-radius: 11px;
   font-size: 0.95rem;
-  font-weight: 600;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
   cursor: pointer;
   border: none;
-  transition: opacity 0.15s;
+  transition: transform 0.12s, box-shadow 0.12s, filter 0.15s, background 0.15s;
 }
-.btn:hover { opacity: 0.85; }
-.btn-primary { background: var(--accent); color: #fff; }
-.btn-danger  { background: var(--red);    color: #fff; }
+.btn:hover { transform: translateY(-1px); }
+
+.btn-primary {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: #fff;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.30);
+}
+.btn-primary:hover { filter: brightness(1.06); box-shadow: 0 10px 26px rgba(37, 99, 235, 0.4); }
+
+.btn-danger  { background: var(--red); color: #fff; }
+
+/* Buttons sitting on top of the gradient hero */
+.btn-on-hero { background: #fff; color: #1e3a5f; box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18); }
+.btn-on-hero-ghost {
+  background: rgba(255, 255, 255, 0.12); color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+}
+.btn-on-hero-ghost:hover { background: rgba(255, 255, 255, 0.2); }
 
 .badge {
   display: inline-block;
@@ -49,6 +85,7 @@ body {
   border-radius: 999px;
   font-size: 0.78rem;
   font-weight: 700;
+  font-family: 'Inter', sans-serif;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }

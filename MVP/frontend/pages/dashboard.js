@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import TrafficLight from '../components/TrafficLight';
 import BNPLSummary from '../components/BNPLSummary';
 import InstallmentTimeline from '../components/InstallmentTimeline';
+import Logo from '../components/Logo';
 
 const API = process.env.NEXT_PUBLIC_API_URL;
 
@@ -37,21 +38,32 @@ export default function Dashboard() {
   }
 
   if (loading) return (
-    <div className="container" style={{ paddingTop: '4rem', textAlign: 'center', color: 'var(--muted)' }}>
-      Scanning your inbox for BNPL emails…
-    </div>
+    <>
+      <div className="hero-bg" />
+      <div className="container" style={{ paddingTop: '4rem', textAlign: 'center', color: 'rgba(255,255,255,0.9)', position: 'relative', zIndex: 1 }}>
+        Scanning your inbox for BNPL emails…
+      </div>
+    </>
   );
 
   if (error) return (
-    <div className="container" style={{ paddingTop: '4rem', textAlign: 'center', color: 'var(--red)' }}>
-      {error}
-    </div>
+    <>
+      <div className="hero-bg" />
+      <div className="container" style={{ paddingTop: '4rem', textAlign: 'center', color: '#fecaca', position: 'relative', zIndex: 1 }}>
+        {error}
+      </div>
+    </>
   );
 
   return (
-    <div className="container">
+    <>
+      <div className="hero-bg" />
+      <div className="container" style={{ position: 'relative', zIndex: 1 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 800 }}>BNPL Safeguard</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem' }}>
+          <Logo size={34} />
+          <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#fff' }}>BNPL Safeguard</h1>
+        </div>
         <button className="btn btn-danger" onClick={handleDisconnect} style={{ fontSize: '0.85rem' }}>
           Disconnect
         </button>
@@ -63,11 +75,12 @@ export default function Dashboard() {
         </div>
       ) : (
         <>
-          <TrafficLight score={data?.score} />
+          <TrafficLight score={data?.score} mode="affordability" />
           <BNPLSummary obligations={data?.obligations || []} />
           <InstallmentTimeline obligations={data?.obligations || []} />
         </>
       )}
-    </div>
+      </div>
+    </>
   );
 }

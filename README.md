@@ -37,11 +37,18 @@ Fintech/
 │   │   ├── next.config.js
 │   │   ├── pages/
 │   │   │   ├── index.js          ← Landing / connect page
-│   │   │   └── dashboard.js      ← Main dashboard
+│   │   │   ├── dashboard.js      ← Live (Gmail) consumer dashboard — score hidden
+│   │   │   ├── demo.js           ← Persona selection page (analyst lens, shows score)
+│   │   │   └── demo/
+│   │   │       ├── dashboard.js  ← Demo consumer dashboard (?persona=X) — score hidden
+│   │   │       └── checkout.js   ← In-app checkout simulation
 │   │   ├── components/
-│   │   │   ├── TrafficLight.jsx  ← Score circle + signal
+│   │   │   ├── TrafficLight.jsx  ← Affordability (consumer) / score (analyst) indicator
 │   │   │   ├── BNPLSummary.jsx   ← Obligations table
-│   │   │   └── InstallmentTimeline.jsx ← Upcoming payments
+│   │   │   ├── InstallmentTimeline.jsx ← Upcoming payments
+│   │   │   ├── ForecastChart.jsx ← Week-by-week cash-flow forecast
+│   │   │   ├── PersonaSelector.jsx ← Persona-selection cards
+│   │   │   └── SafeguardOverlay.jsx ← Checkout-intervention overlay
 │   │   └── styles/
 │   │       └── globals.css
 │   └── extension/                ← Chrome extension (Manifest V3)
@@ -104,7 +111,9 @@ You'll land on a page with **four ways to explore**:
 | 🔴 Priya (demo) | High risk — a missed payment, 5 providers, \>30% of income | **None** |
 | ✉️ Connect Gmail (live) | The real pipeline on a connected inbox | requires `.env` keys |
 
-Click **Try Demo** (or go straight to <http://localhost:3000/demo>) and switch between Sarah, Marcus, and Priya to see each reliability score, obligations table, and cash-flow forecast.
+Click **Try Demo** (or go straight to <http://localhost:3000/demo>) to reach the **persona-selection page**. Each card shows that borrower's story, income, and — as analyst/B2B context — their internal **Reliability Score**. Pick a borrower to open **their** dashboard (`/demo/dashboard?persona=…`), which shows the obligations table, cash-flow forecast, and a plain-English **affordability** signal.
+
+> **Note on the score:** the numeric Reliability Score is an internal signal we'd share with lenders/credit bureaus — it is **never shown to the borrower**. It appears only on the selection page (the analyst view); inside a borrower's own dashboard you see affordability (On track / Getting stretched / At risk), not the number.
 
 **To stop:** press `Ctrl + C` in the terminal.
 

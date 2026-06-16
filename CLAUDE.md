@@ -31,8 +31,9 @@ A browser extension intercepts the user at the one moment that matters: **checko
 │                        ENTRY POINTS                             │
 │                                                                 │
 │   [Try Demo]  ──────────────────  [Connect Gmail]              │
-│   Persona selector                Real OAuth flow              │
-│   No auth required                + Mock bank connect          │
+│   /demo selection page            Real OAuth flow              │
+│   → /demo/dashboard?persona=X     + Mock bank connect          │
+│   No auth required                                             │
 └────────┬────────────────────────────────┬───────────────────────┘
          │                                │
          ▼                                ▼
@@ -119,10 +120,13 @@ Fintech/
 │   │   ├── next.config.js
 │   │   ├── pages/
 │   │   │   ├── index.js              ← Landing: Connect Gmail + Try Demo buttons
-│   │   │   ├── dashboard.js          ← Main dashboard
-│   │   │   └── demo.js               ← Persona selector  [TO BUILD]
+│   │   │   ├── dashboard.js          ← Live (Gmail) consumer dashboard — score hidden
+│   │   │   ├── demo.js               ← Persona SELECTION page (analyst lens, shows score)
+│   │   │   └── demo/
+│   │   │       ├── dashboard.js      ← Demo CONSUMER dashboard (?persona=X) — score hidden
+│   │   │       └── checkout.js       ← In-app checkout simulation
 │   │   ├── components/
-│   │   │   ├── TrafficLight.jsx      ← Score circle + signal
+│   │   │   ├── TrafficLight.jsx      ← mode="affordability" (consumer) | "score" (analyst)
 │   │   │   ├── BNPLSummary.jsx       ← Obligations table
 │   │   │   ├── InstallmentTimeline.jsx ← Upcoming payments
 │   │   │   ├── ForecastChart.jsx     ← Week-by-week cash flow  [TO BUILD]
@@ -175,6 +179,37 @@ Rule-based for MVP explainability (replace with ML model post-launch):
 Traffic light: **Green** ≥ 75 · **Amber** 50–74 · **Red** \< 50
 
 Default monthly income assumption: £2,000 (conservative fallback when not provided).
+
+------------------------------------------------------------------------
+
+## Who sees the Reliability Score (important)
+
+The numeric **Reliability Score (0–100) is an internal / B2B signal** — the asset we sell to lenders and credit bureaus.
+**It is never shown to the borrower (consumer).** This holds in both demo and live paths.
+
+| Surface | Audience | What it shows |
+|----|----|----|
+| `/demo` persona-selection page | Analyst / B2B lens | The numeric score per persona, as context. Labelled "internal · B2B signal". |
+| `/demo/dashboard?persona=X` | Consumer (the borrower's POV) | **Affordability only** — traffic-light colour, plain status (On track / Getting stretched / At risk), £ due, % of income. No number. |
+| `/dashboard` (live Gmail) | Consumer (real user) | Same affordability view — no number. |
+
+Mechanism: `TrafficLight.jsx` takes a `mode` prop. `mode="affordability"` (default) hides the number and renames the card to "Affordability"; `mode="score"` shows the full numeric score. Consumer dashboards pass `affordability`; the score is surfaced only on the selection page.
+
+------------------------------------------------------------------------
+
+## Demo Flow (3 screens)
+
+```
+/ (landing)
+  → "Try Demo"
+/demo (persona SELECTION — analyst lens, shows each borrower's Reliability Score)
+  → click a borrower
+/demo/dashboard?persona=green|amber|red (CONSUMER view — score hidden)
+  → "Continue shopping →"
+/demo/checkout?persona=… (checkout-intervention simulation)
+```
+
+The selection page fetches all three personas (`/api/demo/:persona`) to display real scores/income/plan counts on the cards. The consumer dashboard fetches the single selected persona. Same `{ obligations, score, demo }` payload throughout.
 
 ------------------------------------------------------------------------
 
@@ -303,9 +338,11 @@ FRONTEND_URL=http://localhost:3000
 -   `GET /api/demo/:persona` — no-auth demo endpoint (`routes/demo.js`), mounted in `index.js`. Runs the two-pipeline merge and returns the same `{ obligations, score }` shape as `/api/bnpl/summary`.
 -   `personas/green.json · amber.json · red.json` — Sarah / Marcus / Priya. Use day-offset dates (`dueInDays` / `purchaseInDays`) so scores stay evergreen. Verified live: green→100, amber→65, red→35.
 -   `ForecastChart.jsx` — week-by-week cash-flow forecast (plain-CSS bars, highlights stress weeks).
--   `PersonaSelector.jsx` + `pages/demo.js` — interactive demo mode UI (3 personas).
+-   `PersonaSelector.jsx` + `pages/demo.js` — persona **selection page** (analyst lens). Cards show story, income, plan count and the numeric Reliability Score as context; clicking navigates to `/demo/dashboard?persona=X`.
+-   `pages/demo/dashboard.js` — per-persona **consumer dashboard**. Reads `?persona=`, fetches `/api/demo/:persona`, renders the affordability view (score hidden), obligations, forecast, timeline, bank reconciliation, and the checkout CTA. Back link returns to `/demo`.
+-   `TrafficLight.jsx` — `mode` prop: consumer dashboards use `affordability` (no number); selection-page context uses the score.
 -   `pages/index.js` — "Try Demo" button added alongside "Connect Gmail".
--   `pages/demo/checkout.js` + `SafeguardOverlay.jsx` — **in-app checkout simulation** (Option B). A mock retailer checkout (Klarna Pay-in-4) reads `?persona=` → `/api/demo/:persona`, then fires an in-page re-creation of the extension overlay computed from that persona's burden. Reached via a "Continue shopping →" CTA on `pages/demo.js` (carries the persona through the URL). Lets graders see the checkout-intervention feature without loading the extension or connecting Gmail.
+-   `pages/demo/checkout.js` + `SafeguardOverlay.jsx` — **in-app checkout simulation** (Option B). A mock retailer checkout (Klarna Pay-in-4) reads `?persona=` → `/api/demo/:persona`, then fires an in-page re-creation of the extension overlay computed from that persona's burden. Reached via a "Continue shopping →" CTA on `/demo/dashboard` (carries the persona through the URL); the overlay surfaces the traffic-light affordability signal, not the numeric score. Lets graders see the checkout-intervention feature without loading the extension or connecting Gmail.
 
 **Tooling / delivery**
 
