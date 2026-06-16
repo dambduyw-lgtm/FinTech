@@ -1,0 +1,58 @@
+{
+  "persona": "amber",
+  "name": "Marcus",
+  "blurb": "Four active plans, one payment slightly late last cycle, a cluster due next month, ~18% burden.",
+  "monthlyIncome": 2200,
+  "obligations": [
+    {
+      "provider": "Klarna",
+      "merchant": "ASOS",
+      "currency": "GBP",
+      "totalAmount": 300,
+      "purchaseInDays": -56,
+      "installments": [
+        { "amount": 75, "dueInDays": -28, "status": "late" },
+        { "amount": 75, "dueInDays": -1, "status": "paid" },
+        { "amount": 75, "dueInDays": 27, "status": "pending" },
+        { "amount": 75, "dueInDays": 55, "status": "pending" }
+      ]
+    },
+    {
+      "provider": "Afterpay",
+      "merchant": "Nike",
+      "currency": "GBP",
+      "totalAmount": 180,
+      "purchaseInDays": -12,
+      "installments": [
+        { "amount": 45, "dueInDays": -12, "status": "paid" },
+        { "amount": 45, "dueInDays": 15, "status": "pending" },
+        { "amount": 45, "dueInDays": 29, "status": "pending" },
+        { "amount": 45, "dueInDays": 47, "status": "pending" }
+      ]
+    },
+    {
+      "provider": "Affirm",
+      "merchant": "Peloton",
+      "currency": "GBP",
+      "totalAmount": 300,
+      "purchaseInDays": -6,
+      "installments": [
+        { "amount": 150, "dueInDays": 24, "status": "pending" },
+        { "amount": 150, "dueInDays": 54, "status": "pending" }
+      ]
+    },
+    {
+      "provider": "Clearpay",
+      "merchant": "Boohoo",
+      "currency": "GBP",
+      "totalAmount": 160,
+      "purchaseInDays": -8,
+      "installments": [
+        { "amount": 40, "dueInDays": -8, "status": "paid" },
+        { "amount": 40, "dueInDays": 20, "status": "pending" },
+        { "amount": 40, "dueInDays": 30, "status": "pending" },
+        { "amount": 40, "dueInDays": 52, "status": "pending" }
+      ]
+    }
+  ]
+}

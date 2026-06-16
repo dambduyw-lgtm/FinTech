@@ -5,6 +5,7 @@ const cors = require('cors');
 
 const authRoutes = require('./routes/auth');
 const bnplRoutes = require('./routes/bnpl');
+const demoRoutes = require('./routes/demo');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -28,6 +29,7 @@ app.use(session({
 // ── Routes ────────────────────────────────────────────────────────────────────
 app.use('/auth', authRoutes);
 app.use('/api/bnpl', bnplRoutes);
+app.use('/api/demo', demoRoutes);
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

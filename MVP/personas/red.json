@@ -1,0 +1,71 @@
+{
+  "persona": "red",
+  "name": "Priya",
+  "blurb": "Five plans across five providers, one missed/overdue payment, obligations above 30% of income, multiple payments converging.",
+  "monthlyIncome": 1800,
+  "obligations": [
+    {
+      "provider": "Klarna",
+      "merchant": "Currys",
+      "currency": "GBP",
+      "totalAmount": 400,
+      "purchaseInDays": -34,
+      "installments": [
+        { "amount": 100, "dueInDays": -20, "status": "paid" },
+        { "amount": 100, "dueInDays": 5, "status": "pending" },
+        { "amount": 100, "dueInDays": 12, "status": "pending" },
+        { "amount": 100, "dueInDays": 33, "status": "pending" }
+      ]
+    },
+    {
+      "provider": "Afterpay",
+      "merchant": "JD Sports",
+      "currency": "GBP",
+      "totalAmount": 200,
+      "purchaseInDays": -30,
+      "installments": [
+        { "amount": 50, "dueInDays": -30, "status": "paid" },
+        { "amount": 50, "dueInDays": 3, "status": "pending" },
+        { "amount": 50, "dueInDays": 18, "status": "pending" },
+        { "amount": 50, "dueInDays": 40, "status": "pending" }
+      ]
+    },
+    {
+      "provider": "Affirm",
+      "merchant": "Wayfair",
+      "currency": "GBP",
+      "totalAmount": 300,
+      "purchaseInDays": -22,
+      "installments": [
+        { "amount": 150, "dueInDays": 8, "status": "pending" },
+        { "amount": 150, "dueInDays": 38, "status": "pending" }
+      ]
+    },
+    {
+      "provider": "Clearpay",
+      "merchant": "Shein",
+      "currency": "GBP",
+      "totalAmount": 120,
+      "purchaseInDays": -39,
+      "installments": [
+        { "amount": 30, "dueInDays": -25, "status": "paid" },
+        { "amount": 30, "dueInDays": -5, "status": "pending" },
+        { "amount": 30, "dueInDays": 15, "status": "pending" },
+        { "amount": 30, "dueInDays": 45, "status": "pending" }
+      ]
+    },
+    {
+      "provider": "Zip",
+      "merchant": "Argos",
+      "currency": "GBP",
+      "totalAmount": 160,
+      "purchaseInDays": -24,
+      "installments": [
+        { "amount": 40, "dueInDays": -10, "status": "paid" },
+        { "amount": 40, "dueInDays": 10, "status": "pending" },
+        { "amount": 40, "dueInDays": 22, "status": "pending" },
+        { "amount": 40, "dueInDays": 44, "status": "pending" }
+      ]
+    }
+  ]
+}

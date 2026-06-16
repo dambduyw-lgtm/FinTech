@@ -1,0 +1,14 @@
+{
+  "name": "bnpl-safeguard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "BNPL Safeguard MVP — one-command launcher for the backend (Express) and frontend (Next.js).",
+  "scripts": {
+    "setup": "npm --prefix backend install && npm --prefix frontend install",
+    "demo": "concurrently -k -n backend,frontend -c blue,green \"npm --prefix backend run dev\" \"npm --prefix frontend run dev\"",
+    "start": "npm run demo"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "project": "BNPL Safeguard MVP",
+  "description": "Consumer-side BNPL protection platform — Gmail parsing + Open Banking mock + browser extension",
+  "instructions": "Always read CLAUDE.md before making changes. Keep demo mode and real Gmail pipeline strictly separate. Persona JSON must match /api/bnpl/summary response shape exactly.",
+  "preferred_model": "claude-sonnet",
+  "conventions": {
+    "commits": "conventional commits — feat:, fix:, docs:, refactor:",
+    "backend": "Node.js 18 + Express, async/await, no TypeScript",
+    "frontend": "Next.js 14, plain CSS (globals.css), no Tailwind",
+    "naming": "camelCase for variables/functions, PascalCase for React components"
+  },
+  "never_do": [
+    "Commit .env files",
+    "Add authentication requirements to /api/demo/* endpoints",
+    "Introduce ML/Python dependencies in the MVP",
+    "Modify gmail.js or extraction.js without explicit instruction"
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "persona": "green",
+  "name": "Sarah",
+  "blurb": "Two BNPL plans, all payments on track, low burden. A healthy borrower.",
+  "monthlyIncome": 2500,
+  "obligations": [
+    {
+      "provider": "Klarna",
+      "merchant": "ASOS",
+      "currency": "GBP",
+      "totalAmount": 100,
+      "purchaseInDays": -56,
+      "installments": [
+        { "amount": 25, "dueInDays": -42, "status": "paid" },
+        { "amount": 25, "dueInDays": -14, "status": "paid" },
+        { "amount": 25, "dueInDays": 14, "status": "pending" },
+        { "amount": 25, "dueInDays": 42, "status": "pending" }
+      ]
+    },
+    {
+      "provider": "Afterpay",
+      "merchant": "Nike",
+      "currency": "GBP",
+      "totalAmount": 140,
+      "purchaseInDays": -7,
+      "installments": [
+        { "amount": 35, "dueInDays": -7, "status": "paid" },
+        { "amount": 35, "dueInDays": 21, "status": "pending" },
+        { "amount": 35, "dueInDays": 49, "status": "pending" },
+        { "amount": 35, "dueInDays": 77, "status": "pending" }
+      ]
+    }
+  ]
+}
