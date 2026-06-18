@@ -193,13 +193,15 @@ The numeric **Reliability Score (0–100) is an internal / B2B signal** — the 
 | `/demo/dashboard?persona=X` | Consumer (the borrower's POV) | **Affordability only** — traffic-light colour, plain status (On track / Getting stretched / At risk), £ due, % of income. No number. |
 | `/dashboard` (live Gmail) | Consumer (real user) | Same affordability view — no number. |
 
-Mechanism: `TrafficLight.jsx` takes a `mode` prop. `mode="affordability"` (default) hides the number and renames the card to "Affordability"; `mode="score"` shows the full numeric score. Consumer dashboards pass `affordability`; the score is surfaced only on the selection page.
+Mechanism: `TrafficLight.jsx` takes a `mode` prop.
+`mode="affordability"` (default) hides the number and renames the card to "Affordability"; `mode="score"` shows the full numeric score.
+Consumer dashboards pass `affordability`; the score is surfaced only on the selection page.
 
 ------------------------------------------------------------------------
 
 ## Demo Flow (3 screens)
 
-```
+```         
 / (landing)
   → "Try Demo"
 /demo (persona SELECTION — analyst lens, shows each borrower's Reliability Score)
@@ -209,7 +211,9 @@ Mechanism: `TrafficLight.jsx` takes a `mode` prop. `mode="affordability"` (defau
 /demo/checkout?persona=… (checkout-intervention simulation)
 ```
 
-The selection page fetches all three personas (`/api/demo/:persona`) to display real scores/income/plan counts on the cards. The consumer dashboard fetches the single selected persona. Same `{ obligations, score, demo }` payload throughout.
+The selection page fetches all three personas (`/api/demo/:persona`) to display real scores/income/plan counts on the cards.
+The consumer dashboard fetches the single selected persona.
+Same `{ obligations, score, demo }` payload throughout.
 
 ------------------------------------------------------------------------
 
