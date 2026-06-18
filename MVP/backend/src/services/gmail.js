@@ -6,16 +6,43 @@ const BNPL_SENDERS = [
   'klarna.com',
   'afterpay.com',
   'clearpay.com',
+  'clearpay.co.uk',
   'affirm.com',
   'laybuy.com',
   'zip.co',
   'paidy.com',
   'sezzle.com',
-  'splitit.com'
+  'splitit.com',
+  'quadpay.com',
+  'zippay.com',
+  'hoolah.co',
+  'atome.sg',
+  'pace.credit'
+];
+
+// BNPL brand / keyword terms matched against the SUBJECT line.
+// Needed for the seeded demo inbox: emails sent through Gmail SMTP have their
+// From header rewritten to the authenticated sending account, so they never
+// match `from:klarna.com` etc. Matching brand names in the subject lets the
+// real pipeline pick up both genuine provider emails AND seeded demo emails.
+const BNPL_SUBJECT_TERMS = [
+  'Klarna',
+  'Afterpay',
+  'Clearpay',
+  'Affirm',
+  'Laybuy',
+  'Sezzle',
+  'Zip',
+  'Paidy',
+  'instalment',
+  'installment',
+  'pay in 3',
+  'pay in 4'
 ];
 
 const SENDER_QUERY = BNPL_SENDERS.map(d => `from:${d}`).join(' OR ');
-const FULL_QUERY = `(${SENDER_QUERY}) newer_than:6m`;
+const SUBJECT_QUERY = BNPL_SUBJECT_TERMS.map(t => `subject:"${t}"`).join(' OR ');
+const FULL_QUERY = `(${SENDER_QUERY} OR ${SUBJECT_QUERY}) newer_than:6m`;
 
 /**
  * Fetches BNPL-related emails from the user's Gmail inbox.

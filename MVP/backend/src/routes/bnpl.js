@@ -3,6 +3,78 @@ const router = express.Router();
 const { fetchBNPLEmails } = require('../services/gmail');
 const { extractBNPLData } = require('../services/extraction');
 const { calculateScore } = require('../services/scoring');
+const { synthesizeTransactions, classifyBNPL, reconcile } = require('../services/openbanking');
+
+/**
+ * Shared live pipeline: Gmail -> extract -> dedupe -> Open Banking reconcile.
+ *
+ * Mirrors the demo route's two-pipeline merge so the live dashboard renders with
+ * the same { obligations, bank } shape the personas use. Email parsing gives the
+ * obligation schedule; the (synthesized) bank feed confirms what was actually paid.
+ *
+ * @returns {Promise<{ obligations: Array, bank: object|null }>}
+ */
+async function buildObligations(tokens) {
+  const rawEmails = await fetchBNPLEmails(tokens);
+  if (!rawEmails.length) {
+    console.info('BNPL pipeline: 0 emails matched the inbox query.');
+    return { obligations: [], bank: null, rawCount: 0 };
+  }
+
+  const extracted = await Promise.allSettled(
+    rawEmails.map(email => extractBNPLData(email))
+  );
+
+  const parsed = extracted
+    .filter(r => r.status === 'fulfilled' && r.value)
+    .map(r => r.value);
+
+  console.info(`BNPL pipeline: ${rawEmails.length} emails matched, ${parsed.length} extracted to obligations.`);
+
+  // ── Dedupe: multiple emails can describe one order (e.g. a confirmation plus a
+  //    later "payment was late" notice). Merge by orderId, keeping the richest
+  //    schedule and carrying any late notice across.
+  const byOrder = new Map();
+  for (const ob of parsed) {
+    const key = ob.orderId || `${ob.provider}|${ob.merchant}`;
+    const existing = byOrder.get(key);
+    if (!existing) {
+      byOrder.set(key, { ...ob });
+    } else {
+      const richer = ob.installments.length > existing.installments.length ? ob : existing;
+      byOrder.set(key, { ...richer, lateNotice: existing.lateNotice || ob.lateNotice });
+    }
+  }
+
+  // ── Apply late notices: mark the most recent settled instalment as 'late' so the
+  //    scoring engine applies the late-payment penalty.
+  const obligations = [...byOrder.values()].map(ob => {
+    if (!ob.lateNotice) return stripMeta(ob);
+    let marked = false;
+    const installments = [...ob.installments]
+      .sort((a, b) => new Date(b.dueDate) - new Date(a.dueDate))
+      .map(inst => {
+        if (!marked && inst.status === 'paid') { marked = true; return { ...inst, status: 'late' }; }
+        return inst;
+      })
+      .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+    return stripMeta({ ...ob, installments });
+  });
+
+  // ── Pipeline 2: Open Banking confirmation. No linked bank in the MVP, so the
+  //    feed is synthesized from the schedule, then classified and reconciled with
+  //    the exact same functions a real Plaid feed would flow through.
+  const transactions = synthesizeTransactions(obligations);
+  const bnplTransactions = classifyBNPL(transactions);
+  const { obligations: reconciled, summary: bank } = reconcile(obligations, bnplTransactions);
+
+  return { obligations: reconciled, bank, rawCount: rawEmails.length };
+}
+
+// Drop parser-only bookkeeping fields before the obligation leaves the pipeline.
+function stripMeta({ orderId, lateNotice, ...rest }) {
+  return rest;
+}
 
 // ── Auth guard ────────────────────────────────────────────────────────────────
 function requireAuth(req, res, next) {
@@ -16,29 +88,26 @@ function requireAuth(req, res, next) {
 // Full pipeline: fetch emails → extract → score
 router.get('/summary', requireAuth, async (req, res) => {
   try {
-    const rawEmails = await fetchBNPLEmails(req.session.gmailTokens);
+    const { obligations, bank, rawCount } = await buildObligations(req.session.gmailTokens);
 
-    if (!rawEmails.length) {
+    if (!obligations.length) {
+      // Distinguish "nothing matched" from "matched but couldn't extract" so the
+      // failure is legible instead of silently looking like an empty inbox.
+      const message = rawCount > 0
+        ? `Found ${rawCount} BNPL email${rawCount === 1 ? '' : 's'}, but couldn't extract any payment details from them.`
+        : 'No BNPL emails found in your inbox.';
       return res.json({
         obligations: [],
         totalOutstanding: 0,
         score: { value: 100, label: 'green' },
-        message: 'No BNPL emails found in your inbox.'
+        message
       });
     }
 
-    // Extract structured data from each email via LLM
-    const extracted = await Promise.allSettled(
-      rawEmails.map(email => extractBNPLData(email))
-    );
-
-    const obligations = extracted
-      .filter(r => r.status === 'fulfilled' && r.value)
-      .map(r => r.value);
-
     const score = calculateScore(obligations);
 
-    res.json({ obligations, score });
+    // Same { obligations, score, bank } shape the demo personas return.
+    res.json({ obligations, score, bank });
   } catch (err) {
     console.error('BNPL summary error:', err.message);
     res.status(500).json({ error: 'Failed to fetch BNPL data' });
@@ -49,14 +118,7 @@ router.get('/summary', requireAuth, async (req, res) => {
 // Lightweight endpoint used by the browser extension at checkout
 router.get('/burden', requireAuth, async (req, res) => {
   try {
-    const rawEmails = await fetchBNPLEmails(req.session.gmailTokens);
-    const extracted = await Promise.allSettled(
-      rawEmails.map(email => extractBNPLData(email))
-    );
-
-    const obligations = extracted
-      .filter(r => r.status === 'fulfilled' && r.value)
-      .map(r => r.value);
+    const { obligations } = await buildObligations(req.session.gmailTokens);
 
     const score = calculateScore(obligations);
 

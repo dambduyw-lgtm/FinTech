@@ -188,4 +188,47 @@ function reconcile(obligations, bnplTransactions) {
   };
 }
 
-module.exports = { getTransactions, classifyBNPL, reconcile };
+/**
+ * Synthesize a Plaid-shaped transaction feed from email-derived obligations.
+ *
+ * Used by the LIVE path (real Gmail), where there is no linked bank account in
+ * the MVP. For every instalment the email schedule shows as already settled
+ * (paid / late) and dated in the past, we emit a matching debit — i.e. the money
+ * that would have left the account. Future (pending) instalments get no debit,
+ * exactly like a real feed, so reconcile() can still flag any overdue-unpaid gap.
+ *
+ * In production this whole function is replaced by a real Plaid
+ * /transactions/get call against the user's linked account; the rest of the
+ * pipeline (classifyBNPL -> reconcile) is unchanged.
+ *
+ * @param {Array} obligations - email-derived obligations (resolved ISO dates)
+ * @returns {Array} Plaid-shaped transaction objects
+ */
+function synthesizeTransactions(obligations) {
+  const today = new Date();
+  const txns = [];
+  let i = 0;
+
+  for (const ob of obligations) {
+    for (const inst of ob.installments) {
+      const settled = inst.status === 'paid' || inst.status === 'late';
+      if (!settled) continue;
+      if (new Date(inst.dueDate) > today) continue; // not yet charged
+      txns.push({
+        transaction_id: `live-txn-${i++}`,
+        account_id: 'live-acct-0',
+        name: ob.provider,
+        merchant_name: ob.provider,
+        amount: inst.amount,                 // positive = money out (Plaid convention)
+        iso_currency_code: ob.currency || 'GBP',
+        date: inst.dueDate,
+        pending: false,
+        payment_channel: 'online'
+      });
+    }
+  }
+
+  return txns;
+}
+
+module.exports = { getTransactions, synthesizeTransactions, classifyBNPL, reconcile };

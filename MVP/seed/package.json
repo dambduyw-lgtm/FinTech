@@ -1,0 +1,12 @@
+{
+  "name": "bnpl-seed",
+  "version": "1.0.0",
+  "description": "Seed synthetic BNPL emails into the demo inbox",
+  "scripts": {
+    "seed": "node seed.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "nodemailer": "^6.9.14"
+  }
+}

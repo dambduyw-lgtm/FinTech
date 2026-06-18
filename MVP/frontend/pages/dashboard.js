@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import TrafficLight from '../components/TrafficLight';
 import BNPLSummary from '../components/BNPLSummary';
+import ForecastChart from '../components/ForecastChart';
 import InstallmentTimeline from '../components/InstallmentTimeline';
 import Logo from '../components/Logo';
 
@@ -19,6 +20,7 @@ export default function Dashboard() {
       .then(r => r.json())
       .then(status => {
         if (!status.connected) return router.replace('/');
+        if (!status.bankConnected) return router.replace('/connect/bank');
         return fetch(`${API}/api/bnpl/summary`, { credentials: 'include' });
       })
       .then(r => r?.json())
@@ -77,7 +79,18 @@ export default function Dashboard() {
         <>
           <TrafficLight score={data?.score} mode="affordability" />
           <BNPLSummary obligations={data?.obligations || []} />
+          <ForecastChart obligations={data?.obligations || []} />
           <InstallmentTimeline obligations={data?.obligations || []} />
+
+          {data?.bank && (
+            <div className="card" style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>
+              <strong style={{ color: 'var(--text)' }}>Open Banking reconciliation</strong> —
+              {' '}{data.bank.transactionsScanned} BNPL debits scanned,
+              {' '}{data.bank.paymentsConfirmed} payments confirmed
+              {data.bank.overdueUnpaid > 0 &&
+                <span style={{ color: 'var(--red)' }}>, {data.bank.overdueUnpaid} overdue &amp; unpaid</span>}.
+            </div>
+          )}
         </>
       )}
       </div>
