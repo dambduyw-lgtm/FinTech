@@ -8,7 +8,7 @@ A FinTech MVP that gives consumers and B2B lenders a clear, real-time picture of
 
 1.  The user connects their Gmail inbox via OAuth (read-only, BNPL emails only).
 2.  The backend searches for confirmation emails from Klarna, Afterpay, Affirm, Clearpay, and others.
-3.  An LLM (Claude Haiku) extracts structured installment schedules from each email.
+3.  An LLM (Google Gemini) extracts structured installment schedules from each email.
 4.  A rule-based scoring engine calculates a reliability score and traffic-light signal.
 5.  A browser extension surfaces the user's current burden at the point of checkout.
 
@@ -30,7 +30,7 @@ Fintech/
 │   │       │   └── bnpl.js       ← BNPL data endpoints (/api/bnpl/*)
 │   │       └── services/
 │   │           ├── gmail.js      ← Gmail API: fetch & parse BNPL emails
-│   │           ├── extraction.js ← Claude Haiku: structured data extraction
+│   │           ├── extraction.js ← Gemini Flash: structured data extraction
 │   │           └── scoring.js    ← Rule-based reliability score engine
 │   ├── frontend/                 ← Next.js dashboard
 │   │   ├── package.json

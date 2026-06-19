@@ -270,7 +270,7 @@ node seed.js
 | Backend        | Node.js 18 + Express                              |
 | Auth           | Google OAuth 2.0 (Gmail read-only)                |
 | Email fetch    | Gmail API v1 (googleapis)                         |
-| LLM extraction | Google Gemini Flash (gemini-1.5-flash)            |
+| LLM extraction | Google Gemini Flash (gemini-3.5-flash)            |
 | Scoring        | Rule-based (scoring.js)                           |
 | Open Banking   | Mock layer (openbanking.js) — Plaid in production |
 | Frontend       | Next.js 14 + plain CSS                            |
