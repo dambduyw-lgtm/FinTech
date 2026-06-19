@@ -4,6 +4,7 @@ import TrafficLight from '../components/TrafficLight';
 import BNPLSummary from '../components/BNPLSummary';
 import ForecastChart from '../components/ForecastChart';
 import InstallmentTimeline from '../components/InstallmentTimeline';
+import PaymentReminder from '../components/PaymentReminder';
 import Logo from '../components/Logo';
 
 const API = process.env.NEXT_PUBLIC_API_URL;
@@ -77,6 +78,7 @@ export default function Dashboard() {
         </div>
       ) : (
         <>
+          <PaymentReminder obligations={data?.obligations || []} />
           <TrafficLight score={data?.score} mode="affordability" />
           <BNPLSummary obligations={data?.obligations || []} />
           <ForecastChart obligations={data?.obligations || []} />

@@ -1,16 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Logo from '../../components/Logo';
+import BankLogo from '../../components/BankLogo';
 
 const API = process.env.NEXT_PUBLIC_API_URL;
 
 const BANKS = [
-  { id: 'barclays',   name: 'Barclays',        logo: '🏦' },
-  { id: 'hsbc',       name: 'HSBC',             logo: '🔴' },
-  { id: 'lloyds',     name: 'Lloyds Bank',      logo: '🐴' },
-  { id: 'monzo',      name: 'Monzo',            logo: '🟠' },
-  { id: 'starling',   name: 'Starling Bank',    logo: '🟢' },
-  { id: 'natwest',    name: 'NatWest',          logo: '🟣' },
+  { id: 'barclays', name: 'Barclays' },
+  { id: 'hsbc',     name: 'HSBC' },
+  { id: 'lloyds',   name: 'Lloyds Bank' },
+  { id: 'monzo',    name: 'Monzo' },
+  { id: 'starling', name: 'Starling Bank' },
+  { id: 'natwest',  name: 'NatWest' },
 ];
 
 export default function ConnectBank() {
@@ -124,7 +125,7 @@ export default function ConnectBank() {
                       transition: 'all 0.15s',
                     }}
                   >
-                    <span style={{ fontSize: '1.4rem' }}>{bank.logo}</span>
+                    <BankLogo id={bank.id} size={34} />
                     {bank.name}
                   </button>
                 ))}
@@ -148,7 +149,7 @@ export default function ConnectBank() {
           {step === 'login' && (
             <>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.4rem' }}>
-                <span style={{ fontSize: '1.6rem' }}>{BANKS.find(b => b.id === selected)?.logo}</span>
+                <BankLogo id={selected} size={30} />
                 <h2 style={{ margin: 0, fontSize: '1.3rem' }}>
                   Sign in to {BANKS.find(b => b.id === selected)?.name}
                 </h2>
@@ -218,10 +219,12 @@ export default function ConnectBank() {
 
           {step === 'consent' && (
             <>
-              <h2 style={{ margin: '0 0 0.4rem', fontSize: '1.3rem' }}>
-                {BANKS.find(b => b.id === selected)?.logo}{' '}
-                {BANKS.find(b => b.id === selected)?.name}
-              </h2>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', margin: '0 0 0.4rem' }}>
+                <BankLogo id={selected} size={28} />
+                <h2 style={{ margin: 0, fontSize: '1.3rem' }}>
+                  {BANKS.find(b => b.id === selected)?.name}
+                </h2>
+              </div>
               <p style={{ color: 'var(--muted)', margin: '0 0 1.25rem', fontSize: '0.92rem' }}>
                 BNPL Safeguard is requesting read-only access to:
               </p>
@@ -252,8 +255,8 @@ export default function ConnectBank() {
 
           {step === 'connecting' && (
             <div style={{ textAlign: 'center', padding: '2rem 0' }}>
-              <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>
-                {BANKS.find(b => b.id === selected)?.logo}
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+                <BankLogo id={selected} size={48} />
               </div>
               <p style={{ color: 'var(--muted)', fontSize: '0.95rem' }}>
                 Connecting to {BANKS.find(b => b.id === selected)?.name}…

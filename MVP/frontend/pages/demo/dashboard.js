@@ -5,6 +5,7 @@ import TrafficLight from '../../components/TrafficLight';
 import BNPLSummary from '../../components/BNPLSummary';
 import InstallmentTimeline from '../../components/InstallmentTimeline';
 import ForecastChart from '../../components/ForecastChart';
+import PaymentReminder from '../../components/PaymentReminder';
 import Logo from '../../components/Logo';
 
 const API = process.env.NEXT_PUBLIC_API_URL;
@@ -83,6 +84,7 @@ export default function DemoDashboard() {
 
       {data && !loading && !error && (
         <>
+          <PaymentReminder obligations={data.obligations || []} />
           {data.demo && (
             <p style={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.9rem', marginBottom: '1rem' }}>
               Viewing <strong>{data.demo.name}</strong>&apos;s dashboard — this is what {data.demo.name} sees.
