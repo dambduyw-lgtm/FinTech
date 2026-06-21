@@ -3,7 +3,7 @@ const router = express.Router();
 const { fetchBNPLEmails } = require('../services/gmail');
 const { extractBNPLData } = require('../services/extraction');
 const { calculateScore } = require('../services/scoring');
-const { synthesizeTransactions, classifyBNPL, reconcile } = require('../services/openbanking');
+const { getLiveBankFeed, classifyBNPL, reconcile } = require('../services/openbanking');
 
 /**
  * Shared live pipeline: Gmail -> extract -> dedupe -> Open Banking reconcile.
@@ -31,11 +31,19 @@ async function buildObligations(tokens) {
 
   console.info(`BNPL pipeline: ${rawEmails.length} emails matched, ${parsed.length} extracted to obligations.`);
 
+  // ── Sanitize: the LLM occasionally emits an installment with a missing or
+  //    unparseable dueDate, which would otherwise render as "1 Jan 1970" and sort
+  //    to the top as wildly overdue. Drop installments without a sane date, and
+  //    drop any obligation left with none.
+  const cleaned = parsed
+    .map(ob => ({ ...ob, installments: (ob.installments || []).filter(hasValidDueDate) }))
+    .filter(ob => ob.installments.length > 0);
+
   // ── Dedupe: multiple emails can describe one order (e.g. a confirmation plus a
   //    later "payment was late" notice). Merge by orderId, keeping the richest
   //    schedule and carrying any late notice across.
   const byOrder = new Map();
-  for (const ob of parsed) {
+  for (const ob of cleaned) {
     const key = ob.orderId || `${ob.provider}|${ob.merchant}`;
     const existing = byOrder.get(key);
     if (!existing) {
@@ -64,9 +72,9 @@ async function buildObligations(tokens) {
   // ── Pipeline 2: Open Banking confirmation. No linked bank in the MVP, so the
   //    feed is synthesized from the schedule, then classified and reconciled with
   //    the exact same functions a real Plaid feed would flow through.
-  const transactions = synthesizeTransactions(obligations);
+  const transactions = getLiveBankFeed();
   const bnplTransactions = classifyBNPL(transactions);
-  const { obligations: reconciled, summary: bank } = reconcile(obligations, bnplTransactions);
+  const { obligations: reconciled, summary: bank } = reconcile(obligations, bnplTransactions, { promotePending: true });
 
   return { obligations: reconciled, bank, rawCount: rawEmails.length };
 }
@@ -74,6 +82,14 @@ async function buildObligations(tokens) {
 // Drop parser-only bookkeeping fields before the obligation leaves the pipeline.
 function stripMeta({ orderId, lateNotice, ...rest }) {
   return rest;
+}
+
+// True only for a parseable, plausible due date — guards against null / '' which
+// coerce to the Unix epoch (1 Jan 1970) and pollute the dashboard.
+function hasValidDueDate(inst) {
+  if (!inst || typeof inst.dueDate !== 'string') return false;
+  const t = Date.parse(inst.dueDate);
+  return Number.isFinite(t) && new Date(t).getFullYear() >= 2000;
 }
 
 // ── Auth guard ────────────────────────────────────────────────────────────────

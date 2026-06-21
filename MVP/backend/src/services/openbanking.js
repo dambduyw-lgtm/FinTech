@@ -108,6 +108,42 @@ function getTransactions(userId) {
   }));
 }
 
+// ── Controlled bank feed for the LIVE demo account (dviet8758@gmail.com) ──────
+// What an Open Banking connection would return for the seeded inbox: a debit for
+// each BNPL installment that has actually cleared. Day-offsets mirror seed/seed.js
+// so the feed tracks the seeded emails (matchTxn's ±14-day window absorbs minor
+// drift; re-run seed.js to realign if the inbox is stale). The Afterpay instalment
+// due ~2 weeks ago is intentionally LEFT OUT, so reconcile surfaces one genuine
+// missed payment — demonstrating the email-vs-bank discrepancy detection.
+const LIVE_BANK_FEED = [
+  { name: 'Klarna',       amount: 29.99, dayOffset: -30 }, // Klarna instalment 1 — cleared
+  { name: 'Afterpay',     amount: 40.00, dayOffset: -42 }, // Afterpay instalment 1 — cleared
+  // Afterpay instalment 2 (~ -14): intentionally MISSING → flagged overdue/unpaid
+  { name: 'Affirm',       amount: 49.83, dayOffset: -60 }, // Affirm instalment 1 — cleared
+  { name: 'Affirm',       amount: 49.83, dayOffset: -30 }, // Affirm instalment 2 — cleared
+  { name: 'Tesco Stores', amount: 54.20, dayOffset: -3  }, // non-BNPL noise for classifyBNPL to filter
+];
+
+/**
+ * Bank feed for the live (seeded Gmail) demo account.
+ * Production: Plaid /transactions/get for the user's linked account.
+ * MVP: a controlled feed mirroring the seeded purchases' cleared payments.
+ * @returns {Array} Plaid-shaped transaction objects
+ */
+function getLiveBankFeed() {
+  return LIVE_BANK_FEED.map((t, i) => ({
+    transaction_id: `live-txn-${i}`,
+    account_id: 'live-acct-0',
+    name: t.name,
+    merchant_name: t.name,
+    amount: t.amount,
+    iso_currency_code: 'GBP',
+    date: offsetToISO(t.dayOffset),
+    pending: false,
+    payment_channel: 'online'
+  }));
+}
+
 /**
  * Filter a raw transaction feed down to BNPL debits, tagging each with the
  * detected provider.
@@ -136,7 +172,8 @@ function classifyBNPL(transactions) {
  * @param {Array} bnplTransactions - output of classifyBNPL()
  * @returns {{ obligations: Array, summary: object }}
  */
-function reconcile(obligations, bnplTransactions) {
+function reconcile(obligations, bnplTransactions, options = {}) {
+  const { promotePending = false } = options;
   const used = new Set();
   const matchTxn = (provider, amount, dueDate) => {
     const target = new Date(dueDate).getTime();
@@ -167,11 +204,24 @@ function reconcile(obligations, bnplTransactions) {
         out.confirmedPaid = ok;
         if (ok) { confirmed++; }
         else { unconfirmed++; out.bankFlag = 'no_matching_debit'; }
-      } else if (inst.status === 'pending' && new Date(inst.dueDate) < new Date()) {
-        // Overdue and no money has left the account — confirmed missed.
-        out.confirmedPaid = false;
-        out.bankFlag = 'overdue_unpaid';
-        discrepancies++;
+      } else if (inst.status === 'pending') {
+        // Bank feed is the source of truth for payment execution. A confirmation
+        // email never says a *later* installment was paid, so the schedule arrives
+        // all-"pending". When promotePending is set (live path), a matching debit
+        // means the money actually left the account → promote to paid. Only a
+        // past-due installment with NO matching debit is a genuine missed payment.
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+        const ok = promotePending && matchTxn(ob.provider, inst.amount, inst.dueDate);
+        if (ok) {
+          out.status = 'paid';
+          out.confirmedPaid = true;
+          confirmed++;
+        } else if (new Date(inst.dueDate) < startOfToday) {
+          out.confirmedPaid = false;
+          out.bankFlag = 'overdue_unpaid';
+          discrepancies++;
+        }
       }
       return out;
     })
@@ -231,4 +281,4 @@ function synthesizeTransactions(obligations) {
   return txns;
 }
 
-module.exports = { getTransactions, synthesizeTransactions, classifyBNPL, reconcile };
+module.exports = { getTransactions, getLiveBankFeed, synthesizeTransactions, classifyBNPL, reconcile };

@@ -34,7 +34,7 @@ export default function Home() {
           </h1>
         </div>
         <p style={{ color: 'rgba(255,255,255,0.9)', maxWidth: 440, margin: '0 auto 2rem', fontSize: '1.02rem' }}>
-          Connect your Gmail inbox to automatically track all your Buy Now Pay Later
+          Connect your email and bank accounts to automatically track all your Buy Now Pay Later
           obligations in one place and understand your real affordability.
         </p>
 
@@ -51,7 +51,7 @@ export default function Home() {
 
         <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
           <a href={`${API}/auth/gmail`} className="btn btn-on-hero-ghost" style={{ fontSize: '1rem', padding: '0.8rem 2rem' }}>
-            Connect Gmail
+            Connect Accounts
           </a>
           <Link href="/demo" className="btn btn-on-hero" style={{ fontSize: '1rem', padding: '0.8rem 2rem' }}>
             Try Demo
@@ -59,7 +59,7 @@ export default function Home() {
         </div>
 
         <p style={{ marginTop: '1.5rem', fontSize: '0.8rem', color: 'rgba(255,255,255,0.82)' }}>
-          We only read emails from BNPL providers. No other emails are accessed.
+          We read only BNPL provider emails and read-only bank data to confirm payments — never other emails, and we never move money.
           {' '}No account? <Link href="/demo" style={{ color: '#fff', textDecoration: 'underline' }}>Explore the demo</Link>.
         </p>
       </div>

@@ -19,19 +19,30 @@ A FinTech MVP that gives consumers and B2B lenders a clear, real-time picture of
 ```         
 Fintech/
 ├── MVP/                          ← BNPL Safeguard MVP (this project)
-│   ├── .env.example              ← Copy to .env and fill in credentials
+│   ├── package.json              ← One-command launcher (npm run setup / npm run demo)
+│   ├── .env.example              ← Copy to backend/.env and fill in credentials
 │   ├── .gitignore
 │   ├── backend/                  ← Node.js / Express API server
 │   │   ├── package.json
 │   │   └── src/
-│   │       ├── index.js          ← Server entry point
+│   │       ├── index.js          ← Server entry point (port 3001)
 │   │       ├── routes/
 │   │       │   ├── auth.js       ← Gmail OAuth flow (/auth/gmail)
-│   │       │   └── bnpl.js       ← BNPL data endpoints (/api/bnpl/*)
+│   │       │   ├── bnpl.js       ← Live BNPL data endpoints (/api/bnpl/*)
+│   │       │   └── demo.js       ← No-auth persona endpoint (/api/demo/:persona)
 │   │       └── services/
 │   │           ├── gmail.js      ← Gmail API: fetch & parse BNPL emails
 │   │           ├── extraction.js ← Gemini Flash: structured data extraction
-│   │           └── scoring.js    ← Rule-based reliability score engine
+│   │           ├── scoring.js    ← Rule-based reliability score engine
+│   │           └── openbanking.js ← Mock Open Banking layer (Plaid-shaped) — confirms paid installments
+│   ├── personas/                 ← Evergreen demo data (green / amber / red)
+│   │   ├── green.json
+│   │   ├── amber.json
+│   │   └── red.json
+│   ├── seed/                     ← Seeds the live demo inbox with synthetic BNPL emails
+│   │   ├── package.json
+│   │   ├── seed.js               ← Sends emails via Nodemailer/SMTP
+│   │   └── templates/            ← klarna / afterpay / affirm confirmation HTML
 │   ├── frontend/                 ← Next.js dashboard
 │   │   ├── package.json
 │   │   ├── next.config.js
@@ -39,6 +50,8 @@ Fintech/
 │   │   │   ├── index.js          ← Landing / connect page
 │   │   │   ├── dashboard.js      ← Live (Gmail) consumer dashboard — score hidden
 │   │   │   ├── demo.js           ← Persona selection page (analyst lens, shows score)
+│   │   │   ├── connect/
+│   │   │   │   └── bank.js       ← Open Banking consent screen (mock bank connect)
 │   │   │   └── demo/
 │   │   │       ├── dashboard.js  ← Demo consumer dashboard (?persona=X) — score hidden
 │   │   │       └── checkout.js   ← In-app checkout simulation
@@ -48,7 +61,12 @@ Fintech/
 │   │   │   ├── InstallmentTimeline.jsx ← Upcoming payments
 │   │   │   ├── ForecastChart.jsx ← Week-by-week cash-flow forecast
 │   │   │   ├── PersonaSelector.jsx ← Persona-selection cards
-│   │   │   └── SafeguardOverlay.jsx ← Checkout-intervention overlay
+│   │   │   ├── SafeguardOverlay.jsx ← Checkout-intervention overlay
+│   │   │   ├── PaymentReminder.jsx ← Next/overdue payment toast
+│   │   │   ├── BankLogo.jsx      ← Bank logo / monogram tile
+│   │   │   └── Logo.jsx          ← BNPL Safeguard wordmark logo
+│   │   ├── public/
+│   │   │   └── logos/            ← Bank logo PNGs + drop-in README
 │   │   └── styles/
 │   │       └── globals.css
 │   └── extension/                ← Chrome extension (Manifest V3)

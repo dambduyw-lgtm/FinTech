@@ -33,6 +33,7 @@ function calculateScore(obligations, monthlyIncome = THRESHOLDS.DEFAULT_MONTHLY_
   }
 
   const today = new Date();
+  const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   const in30Days = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
 
   let score = 100;
@@ -57,8 +58,9 @@ function calculateScore(obligations, monthlyIncome = THRESHOLDS.DEFAULT_MONTHLY_
           due30Days += amount;
         }
 
-        // Overdue (pending but past due date)
-        if (dueDate < today) {
+        // Overdue (pending but past its due date — "due today" is not yet missed,
+        // matching the reconcile engine and the cash-flow forecast)
+        if (dueDate < startOfToday) {
           missedPayments++;
         }
       }

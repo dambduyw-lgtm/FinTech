@@ -83,67 +83,79 @@ A browser extension intercepts the user at the one moment that matters: **checko
 ```         
 Fintech/
 ├── CLAUDE.md                         ← You are here
+├── README.md
 ├── .claude/                          ← Agent rules and skills
 │   └── settings.json
-├── MVP/
-│   ├── .env.example
-│   ├── .gitignore
-│   │
-│   ├── backend/
-│   │   ├── package.json
-│   │   └── src/
-│   │       ├── index.js              ← Express server entry point (port 3001)
-│   │       ├── routes/
-│   │       │   ├── auth.js           ← Gmail OAuth flow (/auth/gmail)
-│   │       │   ├── bnpl.js           ← /api/bnpl/summary · /api/bnpl/burden
-│   │       │   └── demo.js           ← /api/demo/:persona  [TO BUILD]
-│   │       └── services/
-│   │           ├── gmail.js          ← Gmail API: fetch & parse BNPL emails
-│   │           ├── extraction.js     ← Gemini Flash: email → structured JSON
-│   │           ├── scoring.js        ← Rule-based reliability score engine
-│   │           └── openbanking.js    ← Mock open banking layer  [TO BUILD]
-│   │
-│   ├── personas/                     ← Hardcoded demo data  [TO BUILD]
-│   │   ├── green.json
-│   │   ├── amber.json
-│   │   └── red.json
-│   │
-│   ├── seed/                         ← Demo inbox seeding  [TO BUILD]
-│   │   ├── seed.js                   ← Sends synthetic emails via Nodemailer
-│   │   └── templates/
-│   │       ├── klarna-confirmation.html
-│   │       ├── afterpay-confirmation.html
-│   │       └── affirm-confirmation.html
-│   │
-│   ├── frontend/
-│   │   ├── package.json
-│   │   ├── next.config.js
-│   │   ├── pages/
-│   │   │   ├── index.js              ← Landing: Connect Gmail + Try Demo buttons
-│   │   │   ├── dashboard.js          ← Live (Gmail) consumer dashboard — score hidden
-│   │   │   ├── demo.js               ← Persona SELECTION page (analyst lens, shows score)
-│   │   │   └── demo/
-│   │   │       ├── dashboard.js      ← Demo CONSUMER dashboard (?persona=X) — score hidden
-│   │   │       └── checkout.js       ← In-app checkout simulation
-│   │   ├── components/
-│   │   │   ├── TrafficLight.jsx      ← mode="affordability" (consumer) | "score" (analyst)
-│   │   │   ├── BNPLSummary.jsx       ← Obligations table
-│   │   │   ├── InstallmentTimeline.jsx ← Upcoming payments
-│   │   │   ├── ForecastChart.jsx     ← Week-by-week cash flow  [TO BUILD]
-│   │   │   └── PersonaSelector.jsx   ← Demo mode picker  [TO BUILD]
-│   │   └── styles/
-│   │       └── globals.css
-│   │
-│   └── extension/
-│       ├── manifest.json             ← Manifest V3
-│       ├── content.js                ← Detects BNPL widgets, injects overlay
-│       ├── background.js             ← Service worker, badge updates
-│       └── popup/
-│           ├── popup.html
-│           ├── popup.js
-│           └── popup.css
-│
-└── README.md
+├── BNPL_Safeguard_Business_Plan.docx
+└── MVP/
+    ├── package.json                  ← One-command launcher (concurrently: npm run setup / npm run demo)
+    ├── .env.example
+    ├── .gitignore
+    │
+    ├── backend/
+    │   ├── package.json
+    │   └── src/
+    │       ├── index.js              ← Express server entry point (port 3001)
+    │       ├── routes/
+    │       │   ├── auth.js           ← Gmail OAuth flow (/auth/gmail)
+    │       │   ├── bnpl.js           ← Live pipeline: /api/bnpl/summary · /api/bnpl/burden
+    │       │   └── demo.js           ← /api/demo/:persona (no-auth persona path)
+    │       └── services/
+    │           ├── gmail.js          ← Gmail API: fetch & parse BNPL emails
+    │           ├── extraction.js     ← Gemini Flash: email → structured JSON
+    │           ├── scoring.js        ← Rule-based reliability score engine
+    │           └── openbanking.js    ← Mock Open Banking: getTransactions / getLiveBankFeed / classifyBNPL / reconcile
+    │
+    ├── personas/                     ← Hardcoded demo data (evergreen day-offset dates)
+    │   ├── green.json
+    │   ├── amber.json
+    │   └── red.json
+    │
+    ├── seed/                         ← Demo inbox seeding
+    │   ├── package.json              ← Nodemailer (run `npm install` here before first seed)
+    │   ├── seed.js                   ← Sends synthetic BNPL emails via Nodemailer/SMTP
+    │   └── templates/
+    │       ├── klarna-confirmation.html
+    │       ├── afterpay-confirmation.html
+    │       └── affirm-confirmation.html
+    │
+    ├── frontend/
+    │   ├── package.json
+    │   ├── next.config.js
+    │   ├── pages/
+    │   │   ├── _app.js
+    │   │   ├── _document.js          ← Google Fonts (Source Serif 4 + Inter)
+    │   │   ├── index.js              ← Landing: Connect Gmail + Try Demo buttons
+    │   │   ├── dashboard.js          ← Live (Gmail) consumer dashboard — score hidden
+    │   │   ├── demo.js               ← Persona SELECTION page (analyst lens, shows score)
+    │   │   ├── connect/
+    │   │   │   └── bank.js           ← Open Banking consent screen (mock bank connect)
+    │   │   └── demo/
+    │   │       ├── dashboard.js      ← Demo CONSUMER dashboard (?persona=X) — score hidden
+    │   │       └── checkout.js       ← In-app checkout simulation
+    │   ├── components/
+    │   │   ├── TrafficLight.jsx      ← mode="affordability" (consumer) | "score" (analyst)
+    │   │   ├── BNPLSummary.jsx       ← Obligations table
+    │   │   ├── InstallmentTimeline.jsx ← Upcoming payments
+    │   │   ├── ForecastChart.jsx     ← Week-by-week cash-flow forecast
+    │   │   ├── PersonaSelector.jsx   ← Persona-selection cards
+    │   │   ├── SafeguardOverlay.jsx  ← In-app checkout-intervention overlay
+    │   │   ├── PaymentReminder.jsx   ← Dismissible next/overdue payment toast
+    │   │   ├── BankLogo.jsx          ← Bank logo / monogram tile (consent screen)
+    │   │   └── Logo.jsx              ← BNPL Safeguard wordmark logo (inline SVG)
+    │   ├── public/
+    │   │   └── logos/                ← Bank PNGs (barclays/hsbc/lloyds/monzo/natwest/starling) + README
+    │   └── styles/
+    │       └── globals.css
+    │
+    └── extension/
+        ├── manifest.json             ← Manifest V3
+        ├── content.js                ← Detects BNPL widgets, injects overlay
+        ├── background.js             ← Service worker, badge updates
+        └── popup/
+            ├── popup.html
+            ├── popup.js
+            └── popup.css
 ```
 
 ------------------------------------------------------------------------
