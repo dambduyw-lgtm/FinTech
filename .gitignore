@@ -19,6 +19,7 @@ env/
 # Environment variables / secrets
 .env
 .env.*
+!MVP/backend/.env.example
 
 # macOS
 .DS_Store
