@@ -24,6 +24,14 @@ env/
 # macOS
 .DS_Store
 
+# Local study / scratch artifacts not meant for the public repo
+.Rhistory
+tmp/
+BM26BAM_mvp_sye_2526.pdf
+FinTech Assignment 2-1.pdf
+BNPL_Safeguard_Business_Plan.docx
+MVP/backend/src/.Rhistory
+
 # IDEs
 .vscode/
 .idea/
